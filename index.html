@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sultan Gacha & Rebirth</title>
+    <style>
+        body { 
+            margin: 0; background: #05070a; color: #fff; 
+            font-family: 'Segoe UI', sans-serif; text-align: center;
+            user-select: none; touch-action: manipulation;
+        }
+        .header { background: linear-gradient(180deg, #1a1c2c, #05070a); padding: 20px; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid #333; }
+        #money { font-size: 40px; color: #00ff88; font-weight: bold; }
+        .stats { display: flex; justify-content: space-around; font-size: 12px; color: #aaa; margin-top: 10px; }
+        
+        #coin {
+            width: 140px; height: 140px; background: radial-gradient(circle, #f1c40f, #d4ac0d);
+            border-radius: 50%; margin: 20px auto;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 60px; border: 6px solid #fff;
+            box-shadow: 0 0 20px rgba(241,196,15,0.3);
+            transition: transform 0.05s;
+        }
+        #coin:active { transform: scale(0.9); }
+
+        .tabs { display: flex; background: #161925; margin-top: 10px; }
+        .tab { flex: 1; padding: 15px; cursor: pointer; border-bottom: 2px solid transparent; font-weight: bold; }
+        .tab.active { border-color: #00ff88; color: #00ff88; background: #1a1c2c; }
+
+        .container { padding: 10px; max-width: 500px; margin: auto; padding-bottom: 100px; }
+        .item {
+            background: #11141d; margin: 8px 0; padding: 12px;
+            border-radius: 10px; display: flex; justify-content: space-between;
+            align-items: center; border: 1px solid #222;
+        }
+        .info { text-align: left; }
+        .info strong { display: block; font-size: 14px; }
+        .info small { color: #00ff88; font-size: 11px; }
+
+        button {
+            padding: 10px; background: #3498db; color: #fff;
+            border: none; border-radius: 5px; font-weight: bold; min-width: 70px;
+        }
+        button:disabled { background: #333; color: #666; }
+
+        #gacha-box { background: #1e1e1e; padding: 20px; border-radius: 15px; border: 2px dashed #f1c40f; margin-top: 20px; }
+        .rebirth-zone { margin-top: 30px; border-top: 1px solid #333; padding-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div id="money">0</div>
+        <div class="stats">
+            <div>MPS: <span id="mps">0</span></div>
+            <div>MULTI: <span id="multi">1.0</span>x</div>
+            <div>REBIRTH: <span id="rb-count">0</span></div>
+        </div>
+    </div>
+
+    <div id="coin">💰</div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="showPage('shop')">BISNIS</div>
+        <div class="tab" onclick="showPage('gacha')">GACHA</div>
+        <div class="tab" onclick="showPage('rebirth')">REBIRTH</div>
+    </div>
+
+    <div class="container">
+        <div id="page-shop">
+            <div id="shop-list"></div>
+        </div>
+
+        <div id="page-gacha" style="display:none">
+            <div id="gacha-box">
+                <h3>KOPER MISTERI</h3>
+                <p>Harga: 5,000 Duit</p>
+                <button onclick="pullGacha()" style="background:#f1c40f; color:#000; width:100%; padding:15px;">BUKA KOPER</button>
+                <p id="gacha-msg" style="margin-top:15px; font-weight:bold; color:#f1c40f;"></p>
+            </div>
+        </div>
+
+        <div id="page-rebirth" style="display:none" class="rebirth-zone">
+            <h3>RITUAL REBIRTH</h3>
+            <p>Butuh: 1,000,000 Duit</p>
+            <p style="font-size:12px; color:#aaa;">Semua aset akan di-reset, tapi Multiplier nambah permanen +1.0x</p>
+            <button id="btn-rb" onclick="doRebirth()" style="background:#e74c3c; width:100%; padding:15px;">EKSEKUSI REBIRTH</button>
+        </div>
+    </div>
+
+    <script>
+        let game = {
+            money: 0, mps: 0, multi: 1.0, rb: 0,
+            upgrades: [
+                { n: "Jualan Gorengan", p: 15, g: 1, c: 0 },
+                { n: "Ojek Pengkolan", p: 100, g: 5, c: 0 },
+                { n: "Toko Kelontong", p: 500, g: 25, c: 0 },
+                { n: "Cafe Hits", p: 2500, g: 120, c: 0 },
+                { n: "Showroom Mobil", p: 12000, g: 650, c: 0 },
+                { n: "Pabrik Tekstil", p: 50000, g: 3000, c: 0 },
+                { n: "Tambang Batubara", p: 200000, g: 15000, c: 0 },
+                { n: "Stasiun TV", p: 1000000, g: 80000, c: 0 },
+                { n: "Bank Swasta", p: 5000000, g: 450000, c: 0 },
+                { n: "Koloni Mars", p: 25000000, g: 2500000, c: 0 }
+            ]
+        };
+
+        // Load Game
+        const saved = localStorage.getItem('sultan_save');
+        if(saved) {
+            const data = JSON.parse(saved);
+            game.money = data.money; game.mps = data.mps; game.multi = data.multi; game.rb = data.rb;
+            data.upgrades.forEach((u, i) => { if(game.upgrades[i]) game.upgrades[i] = u; });
+        }
+
+        function save() { localStorage.setItem('sultan_save', JSON.stringify(game)); }
+
+        function refresh() {
+            document.getElementById('money').innerText = Math.floor(game.money).toLocaleString();
+            document.getElementById('mps').innerText = (game.mps * game.multi).toLocaleString();
+            document.getElementById('multi').innerText = game.multi.toFixed(1);
+            document.getElementById('rb-count').innerText = game.rb;
+            document.getElementById('btn-rb').disabled = game.money < 1000000;
+            
+            game.upgrades.forEach((u, i) => {
+                const b = document.getElementById('b'+i);
+                if(b) b.disabled = game.money < u.p;
+            });
+        }
+
+        function renderShop() {
+            document.getElementById('shop-list').innerHTML = game.upgrades.map((u, i) => `
+                <div class="item">
+                    <div class="info">
+                        <strong>${u.n} [Lv.${u.c}]</strong>
+                        <small>+${u.g}/s | Harga: ${Math.floor(u.p).toLocaleString()}</small>
+                    </div>
+                    <button id="b${i}" onclick="buy(${i})">BELI</button>
+                </div>
+            `).join('');
+        }
+
+        function buy(i) {
+            let u = game.upgrades[i];
+            if(game.money >= u.p) {
+                game.money -= u.p;
+                u.c++;
+                game.mps += u.g;
+                u.p *= 1.45;
+                refresh(); renderShop(); save();
+            }
+        }
+
+        function pullGacha() {
+            if(game.money >= 5000) {
+                game.money -= 5000;
+                let r = Math.random();
+                let msg = "";
+                if(r > 0.9) { game.multi += 0.5; msg = "LEGENDARY! Multiplier +0.5x"; }
+                else if(r > 0.6) { game.money += 20000; msg = "JACKPOT! Dapet 20k Duit"; }
+                else { game.multi += 0.05; msg = "COMMON: Multiplier +0.05x"; }
+                document.getElementById('gacha-msg').innerText = msg;
+                refresh(); save();
+            }
+        }
+
+        function doRebirth() {
+            game.rb++;
+            game.multi += 1.0;
+            game.money = 0; game.mps = 0;
+            game.upgrades.forEach((u, i) => {
+                u.c = 0;
+                u.p = [15,100,500,2500,12000,50000,200000,1000000,5000000,25000000][i];
+            });
+            alert("Lu Rebirth! Sekarang lu makin OP.");
+            showPage('shop'); renderShop(); refresh(); save();
+        }
+
+        function showPage(p) {
+            ['shop','gacha','rebirth'].forEach(pg => {
+                document.getElementById('page-'+pg).style.display = (pg === p) ? 'block' : 'none';
+            });
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        document.getElementById('coin').addEventListener('pointerdown', (e) => { e.preventDefault(); game.money += (1 * game.multi); refresh(); });
+        
+        setInterval(() => { game.money += (game.mps * game.multi) / 10; refresh(); }, 100);
+        setInterval(save, 5000); // Auto-save tiap 5 detik
+
+        renderShop(); refresh();
+    </script>
+</body>
+</html>
