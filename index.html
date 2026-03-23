@@ -3,74 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sultan Tap Tap Royale V10</title>
+    <title>Sultan Tap Tap Royale V11</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00ff88">
     <style>
         :root {
-            --bg: #05070a; --card: rgba(17, 20, 29, 0.95);
+            --bg: #05070a; --card: rgba(17, 20, 29, 0.98);
             --accent: #00ff88; --gold: #f1c40f; --purple: #9b59b6;
-            --neon-green: 0 0 15px #00ff88; --neon-gold: 0 0 15px #f1c40f;
         }
 
         body {
             margin: 0; background: var(--bg); color: #fff;
             font-family: 'Segoe UI', sans-serif; text-align: center;
             overflow-x: hidden; user-select: none; touch-action: manipulation;
-            background-image: radial-gradient(circle at 50% 50%, #1a1c2c 0%, var(--bg) 90%);
         }
 
         canvas { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
-        .header { background: rgba(26,28,44,0.98); padding: 15px; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid #333; }
-        #money { font-size: 38px; color: var(--accent); font-weight: 900; text-shadow: var(--neon-green); margin: 5px 0; }
+        .header { background: #1a1c2c; padding: 15px; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid #333; }
+        #money { font-size: 35px; color: var(--accent); font-weight: 900; text-shadow: 0 0 10px var(--accent); margin: 5px 0; }
         
-        .floating-text {
-            position: fixed; color: var(--gold); font-weight: bold; pointer-events: none;
-            z-index: 1000; font-size: 24px; text-shadow: 0 0 8px #000;
-            animation: floatUp 0.7s ease-out forwards;
-        }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
-
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(10px); }
-        .auth-card { background: var(--card); padding: 30px; border-radius: 20px; border: 2px solid #444; width: 85%; max-width: 320px; }
-        input { padding: 15px; border-radius: 10px; border: 1px solid #444; background: #111; color: #fff; width: 100%; box-sizing: border-box; margin-bottom: 12px; font-size: 16px; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; }
+        .auth-card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #444; width: 80%; max-width: 300px; }
+        input { padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: #fff; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
 
         #main-target {
-            width: 130px; height: 130px; border-radius: 50%; margin: 20px auto;
+            width: 140px; height: 140px; border-radius: 50%; margin: 20px auto;
             display: flex; align-items: center; justify-content: center; font-size: 70px;
-            border: 6px solid #fff; box-shadow: var(--neon-gold);
+            border: 6px solid #fff; box-shadow: 0 0 20px var(--gold);
             cursor: pointer; transition: transform 0.05s; background: radial-gradient(circle, var(--gold), #b8860b);
         }
         #main-target:active { transform: scale(0.9); }
 
         .container { padding: 10px; max-width: 500px; margin: auto; padding-bottom: 120px; }
-        .tabs { display: flex; background: #161925; sticky; top: 115px; z-index: 90; overflow-x: auto; border-bottom: 2px solid #333; }
-        .tab { flex: 1; padding: 15px; cursor: pointer; color: #777; font-weight: bold; font-size: 11px; min-width: 80px; text-transform: uppercase; }
+        .tabs { display: flex; background: #161925; sticky; top: 110px; z-index: 90; overflow-x: auto; border-bottom: 2px solid #333; }
+        .tab { flex: 1; padding: 15px; cursor: pointer; color: #777; font-weight: bold; font-size: 11px; min-width: 80px; }
         .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); background: rgba(0,255,136,0.05); }
 
-        .item { background: var(--card); margin: 10px 0; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
+        .item { background: var(--card); margin: 8px 0; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
         .item-info { text-align: left; }
         button { padding: 10px 15px; background: #3498db; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         button:disabled { background: #222; color: #555; }
 
-        /* --- WHEEL V10 --- */
-        #wheel-container { position: relative; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        /* --- WHEEL V11 --- */
+        #wheel-container { display: flex; flex-direction: column; align-items: center; padding: 20px; }
         #wheel { 
-            width: 280px; height: 280px; border: 8px solid #fff; border-radius: 50%; 
+            width: 260px; height: 260px; border: 8px solid #fff; border-radius: 50%; 
             transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); 
-            background: conic-gradient(
-                #e74c3c 0deg 90deg, 
-                #3498db 90deg 180deg, 
-                #2ecc71 180deg 270deg, 
-                #f1c40f 270deg 360deg
-            ); 
+            background: conic-gradient(#e74c3c 0deg 90deg, #3498db 90deg 180deg, #2ecc71 180deg 270deg, #f1c40f 270deg 360deg); 
             position: relative; overflow: hidden;
         }
-        .wheel-text {
-            position: absolute; width: 50%; height: 50%; transform-origin: bottom right;
-            padding: 20px; box-sizing: border-box; font-weight: bold; font-size: 14px; color: #fff; text-shadow: 1px 1px 3px #000;
-        }
+        .wheel-label { position: absolute; width: 50%; height: 50%; transform-origin: bottom right; padding: 10px; font-weight: bold; font-size: 12px; text-shadow: 1px 1px 2px #000; }
     </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <div id="auth-box" class="modal">
+        <div class="auth-card">
+            <h2 style="color:var(--gold)">SULTAN LOGIN</h2>
+            <input type="text" id="username-input" placeholder="Nama Akun...">
+            <input type="password" id="password-input" placeholder="Password...">
+            <button onclick="login()" style="width:100%; background:var(--accent); color:#000; padding:15px;">MULAI MAIN</button>
+        </div>
+    </div>
+
+    <div class="header">
+        <div style="display:flex; justify-content:space-between; font-size:12px;">
+            <span id="user-display">Name: -</span>
+            <span onclick="location.reload()" style="color:var(--accent); cursor:pointer;">Logout</span>
+        </div>
+        <div id="money">0</div>
+        <div style="font-size:11px; color:#aaa;">RB: <span id="rb-display">0</span> | Multi: <span id="multi-display">1.0</span>x</div>
+    </div>
+
+    <div id="main-target">💰</div>
+
+    <div class="tabs">
+        <div id="t-shop" class="tab active" onclick="showPage('shop')">BISNIS</div>
+        <div id="t-skins" class="tab" onclick="showPage('skins')">SKINS</div>
+        <div id="t-rank" class="tab" onclick="showPage('rank')">RANK</div>
+        <div id="t-spin" class="tab" onclick="showPage('spin')">DAILY SPIN</div>
+        <div id="t-rb" class="tab" onclick="showPage('rb')">REBIRTH</div>
+    </div>
+
+    <div class="container">
+        <div id="page-shop"><div id="shop-list"></div></div>
+        
+        <div id="page-skins" style="display:none">
+            <h3>KOLEKSI SKIN</h3>
+            <div id="skin-list" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+        </div>
+
+        <div id="page-rank" style="display:none">
+            <h3>LEADERBOARD LOKAL</h3>
+            <div style="background:var(--card); padding:20px; border-radius:15px; border:1px solid #333;">
+                <p>1. <span id="rank-name"></span> (You) - <span id="rank-money"></span></p>
+                <p style="color:#666; font-size:12px;">Global rank coming soon...</p>
+            </div>
+        </div>
+
+        <div id="page-spin" style="display:none">
+            <div id="wheel-container">
+                <div style="width:0; height:0; border-left:15px solid transparent; border-right:15px solid transparent; border-top:30px solid var(--accent); z-index:10; margin-bottom:-15px;"></div>
+                <div id="wheel">
+                    <div class="wheel-label" style="transform: rotate(0deg); text-align: right;">5.000</div>
+                    <div class="wheel-label" style="transform: rotate(90deg); text-align: right;">10.000</div>
+                    <div class="wheel-label" style="transform: rotate(180deg); text-align: right;">20.000</div>
+                    <div class="wheel-label" style="transform: rotate(270deg); text-align: right;">BOOST 2X</div>
+                </div>
+                <button id="spin-btn" onclick="spinWheel()" style="margin-top:20px; background:var(--gold); color:#000; width:100%; padding:15px; font-weight:bold;">PUTAR (1X SEHARI)</button>
+            </div>
+        </div>
+
+        <div id="page-rb" style="display:none">
+            <div style="background:rgba(241,196,15,0.1); padding:20px; border-radius:15px; border:1px solid var(--gold);">
+                <h3 style="color:var(--gold)">RITUAL REBIRTH</h3>
+                <p>Butuh: 100 Juta Duit</p>
+                <button id="rb-btn" onclick="doRebirth()" style="background:var(--gold); color:#000; width:100%; padding:15px;">RESET & POWER UP</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let game = { user: "", pass: "", money: 0, mps: 0, multi: 1.0, rb: 0, skin: "💰", lastSpin: 0 };
+        const baseUpgrades = [
+            { n: "Gerobak Gorengan", p: 15, g: 1 }, { n: "Ojek Pengkolan", p: 100, g: 8 }, { n: "Warung Madura", p: 1000, g: 70 },
+            { n: "Cafe Sultan", p: 10000, g: 800 }, { n: "Showroom Mobil", p: 100000, g: 9500 }, { n: "Pabrik Uang", p: 1000000, g: 110000 }
+        ];
+        let upgrades = baseUpgrades.map(u => ({...u, c: 0}));
+        const skins = [{s:"💰",r:0},{s:"💎",r:1},{s:"👑",r:3},{s:"🛸",r:5}];
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+
+        class Particle {
+            constructor(x, y) { this.x = x; this.y = y; this.vX = (Math.random()-0.5)*8; this.vY = (Math.random()-0.5)*8-5; this.life = 1; }
+            update() { this.x += this.vX; this.y += this.vY; this.vY += 0.4; this.life -= 0.02; }
+            draw() { ctx.fillStyle = `rgba(241, 196, 15, ${this.life})`; ctx.font = "16px serif"; ctx.fillText("🪙", this.x, this.y); }
+        }
+
+        function animate() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles = particles.filter(p => p.life > 0);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        function login() {
+            let n = document.getElementById('username-input').value.trim();
+            let p = document.getElementById('password-input').value.trim();
+            if(!n || !p) return alert("Isi data!");
+            let saved = localStorage.getItem('sultan_v11_' + n);
+            if(saved) {
+                let d = JSON.parse(saved);
+                if(d.game.pass !== p) return alert("Salah Password!");
+                game = d.game; upgrades = d.upgrades;
+            } else { game.user = n; game.pass = p; }
+            document.getElementById('auth-box').style.display = 'none';
+            document.getElementById('main-target').innerText = game.skin;
+            updateUI(); renderShop(); startLoop();
+        }
+
+        function hit(e) {
+            let val = (1 * game.multi);
+            game.money += val;
+            const x = (e.clientX || (e.touches ? e.touches[0].clientX : 200));
+            const y = (e.clientY || (e.touches ? e.touches[0].clientY : 200));
+            for(let i=0; i<3; i++) particles.push(new Particle(x, y));
+            refresh();
+        }
+
+        function spinWheel() {
+            let now = Date.now();
+            if(now - game.lastSpin < 86400000) return alert("Sabar! Besok lagi baru bisa muter.");
+            
+            let randomDeg = Math.floor(Math.random() * 360);
+            document.getElementById('wheel').style.transform = `rotate(${3600 + randomDeg}deg)`;
+            document.getElementById('spin-btn').disabled = true;
+
+            setTimeout(() => {
+                let actualDeg = randomDeg % 360;
+                let prize = "";
+                if (actualDeg >= 0 && actualDeg < 90) { game.money += 5000; prize = "Duit 5.000"; }
+                else if (actualDeg >= 90 && actualDeg < 180) { game.multi += 2.0; prize = "BOOST 2X"; }
+                else if (actualDeg >= 180 && actualDeg < 270) { game.money += 20000; prize = "Duit 20.000"; }
+                else { game.money += 10000; prize = "Duit 10.000"; }
+
+                alert("HOKI! Dapet: " + prize);
+                game.lastSpin = Date.now();
+                document.getElementById('spin-btn').disabled = false;
+                updateUI(); saveGame();
+            }, 4000);
+        }
+
+        function buy(i) {
+            if(game.money >= upgrades[i].p) {
+                game.money -= upgrades[i].p; upgrades[i].c++; game.mps += upgrades[i].g;
+                upgrades[i].p = Math.floor(upgrades[i].p * 1.5);
+                renderShop(); refresh(); saveGame();
+            }
+        }
+
+        function renderShop() {
+            document.getElementById('shop-list').innerHTML = upgrades.map((u,i) => `
+                <div class="item">
+                    <div class="item-info"><strong>${u.n} (${u.c})</strong><small>+${Math.floor(u.g*game.multi).toLocaleString()}/s</small></div>
+                    <button id="b${i}" onclick="buy(${i})">Rp${u.p.toLocaleString()}</button>
+                </div>`).join('');
+        }
+
+        function renderSkins() {
+            document.getElementById('skin-list').innerHTML = skins.map(s => `
+                <div style="background:#111; padding:15px; border-radius:10px; border:2px solid ${game.skin === s.s ? 'var(--accent)' : '#333'}" onclick="setSkin('${s.s}',${s.r})">
+                    <div style="font-size:30px">${s.s}</div><small>RB: ${s.r}</small>
+                </div>`).join('');
+        }
+
+        function setSkin(s, r) { if(game.rb >= r) { game.skin = s; document.getElementById('main-target').innerText = s; renderSkins(); saveGame(); } else alert("RB Kurang!"); }
+
+        function showPage(p) {
+            ['shop','skins','rank','spin','rb'].forEach(pg => {
+                document.getElementById('page-'+pg).style.display = (pg === p) ? 'block' : 'none';
+                document.getElementById('t-'+pg).classList.remove('active');
+            });
+            document.getElementById('t-'+p).classList.add('active');
+            if(p === 'skins') renderSkins();
+            if(p === 'rank') { document.getElementById('rank-name').innerText = game.user; document.getElementById('rank-money').innerText = Math.floor(game.money).toLocaleString(); }
+        }
+
+        function doRebirth() {
+            if(game.money < 100000000) return alert("Duit kurang 100jt!");
+            game.rb++; game.multi += 1.5; game.money = 0; game.mps = 0;
+            upgrades = baseUpgrades.map(u => ({...u, c: 0}));
+            updateUI(); renderShop(); showPage('shop'); saveGame();
+        }
+
+        function refresh() {
+            document.getElementById('money').innerText = Math.floor(game.money).toLocaleString();
+            document.getElementById('multi-display').innerText = game.multi.toFixed(1);
+            document.getElementById('rb-display').innerText = game.rb;
+            upgrades.forEach((u,i) => { let b = document.getElementById('b'+i); if(b) b.disabled = game.money < u.p; });
+            document.getElementById('rb-btn').disabled = game.money < 100000000;
+        }
+
+        function updateUI() {
+            document.getElementById('user-display').innerText = "Name: " + game.user;
+            refresh();
+        }
+
+        function saveGame() { if(game.user) localStorage.setItem('sultan_v11_' + game.user, JSON.stringify({game, upgrades})); }
+        function startLoop() {
+            setInterval(() => { game.money += (game.mps * game.multi) / 10; refresh(); }, 100);
+            setInterval(saveGame, 5000);
+        }
+
+        document.getElementById('main-target').addEventListener('pointerdown', hit);
+    </script>
+</body>
+</html>    </style>
 </head>
 <body>
 
