@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sultan Tap Tap Royale V15</title>
+    <title>Sultan Tap Tap Royale V16</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00ff88">
     <style>
@@ -17,27 +17,15 @@
         input { padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: #fff; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
         #main-target { width: 130px; height: 130px; border-radius: 50%; margin: 20px auto; display: flex; align-items: center; justify-content: center; font-size: 70px; border: 6px solid #fff; box-shadow: 0 0 20px var(--gold); cursor: pointer; transition: transform 0.05s; background: radial-gradient(circle, var(--gold), #b8860b); }
         #main-target:active { transform: scale(0.9); }
-        .container { padding: 10px; max-width: 500px; margin: auto; padding-bottom: 120px; min-height: 200px; }
-        .tabs { display: flex; background: #161925; sticky; top: 110px; z-index: 90; overflow-x: auto; border-bottom: 2px solid #333; }
-        .tab { flex: 1; padding: 15px; cursor: pointer; color: #777; font-weight: bold; font-size: 11px; min-width: 80px; }
+        .container { padding: 10px; max-width: 500px; margin: auto; padding-bottom: 120px; }
+        .tabs { display: flex; background: #161925; border-bottom: 2px solid #333; }
+        .tab { flex: 1; padding: 15px; cursor: pointer; color: #777; font-weight: bold; font-size: 11px; }
         .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); background: rgba(0,255,136,0.05); }
         .item { background: var(--card); margin: 8px 0; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
         .tier-badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 5px; text-transform: uppercase; }
-        
-        /* --- SPIN FIX V15 --- */
         #wheel-wrapper { position: relative; width: 280px; height: 280px; margin: 20px auto; }
-        #wheel { 
-            width: 100%; height: 100%; border: 8px solid #fff; border-radius: 50%; 
-            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); 
-            background: conic-gradient(#e74c3c 0deg 90deg, #3498db 90deg 180deg, #2ecc71 180deg 270deg, #f1c40f 270deg 360deg); 
-            position: relative; overflow: hidden;
-        }
-        .wheel-label {
-            position: absolute; width: 100%; height: 100%;
-            text-align: center; font-weight: 900; font-size: 16px;
-            color: #fff; text-shadow: 1px 1px 4px #000;
-            padding-top: 30px; box-sizing: border-box;
-        }
+        #wheel { width: 100%; height: 100%; border: 8px solid #fff; border-radius: 50%; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); background: conic-gradient(#e74c3c 0deg 90deg, #3498db 90deg 180deg, #2ecc71 180deg 270deg, #f1c40f 270deg 360deg); position: relative; overflow: hidden; }
+        .wheel-label { position: absolute; width: 100%; height: 100%; text-align: center; font-weight: 900; font-size: 16px; color: #fff; text-shadow: 1px 1px 4px #000; padding-top: 30px; box-sizing: border-box; }
         button { padding: 10px 15px; background: #3498db; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         button:disabled { background: #222; color: #555; }
     </style>
@@ -76,7 +64,7 @@
                 <p>Total Duit: Rp<span id="r-money">0</span></p>
                 <hr style="border:0.5px solid #333">
                 <small style="color:#888;">
-                    Bronze: 0 - 1K<br>Silver: 1K - 10K<br>Gold: 10K - 100K<br>Platinum: 100K - 1M<br>Diamond: 1M - 10M<br>Master: 10M - 100M<br>Grandmaster: > 100M
+                    Bronze: 0 - 1K | Silver: 1K - 10K | Gold: 10K - 100K<br>Platinum: 100K - 1M | Diamond: 1M - 10M<br>Master: 10M - 100M | GM: > 100M
                 </small>
             </div>
         </div>
@@ -90,7 +78,7 @@
                     <div class="wheel-label" style="transform: rotate(315deg);">BOOST 2X</div>
                 </div>
             </div>
-            <button id="spin-btn" onclick="spinWheel()" style="margin-top:10px; background:var(--gold); color:#000; padding:15px; width:220px; font-weight:900; border-radius:50px; box-shadow: 0 0 15px var(--gold);">PUTAR SPIN</button>
+            <button id="spin-btn" onclick="spinWheel()" style="margin-top:10px; background:var(--gold); color:#000; padding:15px; width:220px; font-weight:900; border-radius:50px;">PUTAR SPIN</button>
         </div>
         <div id="page-rb" style="display:none"><div style="background:rgba(241,196,15,0.1); padding:20px; border-radius:15px; border:1px solid var(--gold);"><h3>REBIRTH</h3><button id="rb-btn" onclick="doRebirth()" style="background:var(--gold); color:#000; width:100%; padding:15px;">RESET & POWER UP</button></div></div>
     </div>
@@ -125,7 +113,14 @@
             let n = document.getElementById('username-input').value.trim();
             let p = document.getElementById('password-input').value.trim();
             if(!n || !p) return alert("Isi data!");
-            let saved = localStorage.getItem('sultan_v15_' + n);
+            
+            // CARI DATA DI SEMUA VERSI (V11 - V16)
+            let saved = null;
+            for(let i=11; i<=16; i++) {
+                let check = localStorage.getItem('sultan_v' + i + '_' + n);
+                if(check) { saved = check; break; }
+            }
+
             if(saved) {
                 let d = JSON.parse(saved);
                 if(d.game.pass !== p) return alert("Salah Password!");
@@ -160,25 +155,18 @@
         }
 
         function spinWheel() {
-            if(Date.now() - game.lastSpin < 86400000) return alert("Sabar Sultan, besok lagi!");
+            if(Date.now() - game.lastSpin < 86400000) return alert("Besok lagi Sultan!");
             let randomAdd = Math.floor(Math.random() * 360);
-            let totalDeg = 3600 + randomAdd;
-            document.getElementById('wheel').style.transform = `rotate(${totalDeg}deg)`;
+            document.getElementById('wheel').style.transform = `rotate(${3600 + randomAdd}deg)`;
             document.getElementById('spin-btn').disabled = true;
-
             setTimeout(() => {
-                // Kalkulasi hadiah berdasarkan jarum (posisi 0 derajat / Atas)
-                // Karena kita muter clockwise, posisi jarum adalah (360 - (deg % 360))
                 let finalPos = (360 - (randomAdd % 360)) % 360;
                 let prize = "";
-                
-                if (finalPos >= 0 && finalPos < 90) { game.money += 5000; prize = "5.000"; }
-                else if (finalPos >= 90 && finalPos < 180) { game.multi += 2; prize = "BOOST 2X"; }
-                else if (finalPos >= 180 && finalPos < 270) { game.money += 20000; prize = "20.000"; }
+                if (finalPos < 90) { game.money += 5000; prize = "5.000"; }
+                else if (finalPos < 180) { game.multi += 2; prize = "BOOST 2X"; }
+                else if (finalPos < 270) { game.money += 20000; prize = "20.000"; }
                 else { game.money += 10000; prize = "10.000"; }
-
-                alert("HOKI! Dapet: " + prize);
-                game.lastSpin = Date.now();
+                alert("Dapet: " + prize); game.lastSpin = Date.now();
                 document.getElementById('spin-btn').disabled = false;
                 refresh(); saveGame();
             }, 4000);
@@ -209,9 +197,9 @@
             upgrades.forEach((u,i) => { let b = document.getElementById('b'+i); if(b) b.disabled = game.money < u.p; });
         }
         function updateUI() { document.getElementById('user-display').innerText = game.user; refresh(); }
-        function saveGame() { if(game.user) localStorage.setItem('sultan_v15_' + game.user, JSON.stringify({game, upgrades})); }
+        function saveGame() { if(game.user) localStorage.setItem('sultan_v16_' + game.user, JSON.stringify({game, upgrades})); }
         function startLoop() { setInterval(() => { game.money += (game.mps * game.multi) / 10; refresh(); }, 100); setInterval(saveGame, 5000); }
         document.getElementById('main-target').addEventListener('pointerdown', hit);
     </script>
 </body>
-</html>
+    </html>
