@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title id="title-tag">TOMODACHI TAP V22</title>
+    <title id="title-tag">TOMODACHI TAP V23</title>
     <style>
         :root { --bg: #0b0e14; --card: rgba(22, 26, 37, 0.98); --accent: #00ff88; --gold: #f1c40f; }
         body { margin: 0; background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; text-align: center; overflow-x: hidden; user-select: none; touch-action: manipulation; }
@@ -22,31 +22,35 @@
         .item { background: var(--card); margin: 8px 0; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
         button { padding: 10px 15px; background: #3498db; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         button:disabled { background: #222 !important; color: #555 !important; cursor: not-allowed; }
-        #audio-ctrl { position: fixed; bottom: 20px; left: 20px; z-index: 1000; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 20px; font-size: 10px; }
+        #audio-ctrl { position: fixed; bottom: 20px; left: 20px; z-index: 1000; background: rgba(0,255,136,0.2); border: 1px solid var(--accent); padding: 8px 15px; border-radius: 20px; font-size: 10px; color: var(--accent); cursor: pointer; }
+        #wheel-wrapper { position: relative; width: 280px; height: 280px; margin: 20px auto; }
+        #wheel { width: 100%; height: 100%; border: 8px solid #fff; border-radius: 50%; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); background: conic-gradient(#e74c3c 0deg 60deg, #3498db 60deg 120deg, #2ecc71 120deg 180deg, #f1c40f 180deg 240deg, #9b59b6 240deg 300deg, #e67e22 300deg 360deg); position: relative; overflow: hidden; }
+        .wheel-section { position: absolute; width: 100%; height: 100%; display: flex; justify-content: center; align-items: flex-start; padding-top: 35px; box-sizing: border-box; }
+        .wheel-section span { font-weight: 900; font-size: 11px; color: #fff; text-shadow: 2px 2px 4px #000; }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
     
-    <audio id="bgm" loop>
-        <source src="https://files.catbox.moe/p9o486.mp3" type="audio/mpeg">
+    <audio id="bgm" loop preload="auto">
+        <source src="https://vgmsite.com/soundtracks/tomodachi-life-nintendo-3ds-rip/osnyerxt/01%20Title%20Theme.mp3" type="audio/mpeg">
     </audio>
 
     <div id="auth-box" class="modal">
         <div class="auth-card">
-            <h2 id="login-title" style="color:var(--gold)">USER LOGIN</h2>
+            <h2 id="login-title" style="color:var(--gold)">LOGIN</h2>
             <input type="text" id="username-input" placeholder="Nama Akun...">
             <input type="password" id="password-input" placeholder="Password...">
-            <button onclick="login()" style="width:100%; background:var(--accent); color:#000; padding:15px; font-weight:bold;">MULAI MAIN</button>
+            <button onclick="login()" style="width:100%; background:var(--accent); color:#000; padding:15px; font-weight:bold;">MASUK & MAIN</button>
         </div>
     </div>
 
-    <div id="audio-ctrl" onclick="toggleAudio()">🎵 Music: OFF</div>
+    <div id="audio-ctrl" onclick="toggleAudio()">🎵 AUDIO: OFF</div>
 
     <div class="header">
         <div style="display:flex; justify-content:space-between; font-size:12px;">
             <div><span id="user-display">-</span> <span id="tier-display" style="padding:2px 5px; border-radius:3px; font-size:10px;"></span></div>
-            <span onclick="localStorage.clear(); location.reload();" style="color:#ff4444; cursor:pointer;">Reset All</span>
+            <span onclick="localStorage.clear(); location.reload();" style="color:#ff4444; cursor:pointer;">Reset</span>
         </div>
         <div id="money">0</div>
         <div style="font-size:11px; color:#aaa;">RB: <span id="rb-display">0</span> | Multi: <span id="multi-display">1.0</span>x</div>
@@ -71,17 +75,24 @@
             </div>
         </div>
         <div id="page-spin" style="display:none">
-            <div id="wheel-wrapper" style="position:relative; width:250px; height:250px; margin:auto;">
-                <div style="width:0; height:0; border-left:10px solid transparent; border-right:10px solid transparent; border-top:20px solid #fff; position:absolute; top:-5px; left:50%; transform:translateX(-50%); z-index:10;"></div>
-                <div id="wheel" style="width:100%; height:100%; border-radius:50%; border:5px solid #fff; transition:4s cubic-bezier(0.1,0,0.1,1); background: conic-gradient(#e74c3c 0deg 90deg, #3498db 90deg 180deg, #2ecc71 180deg 270deg, #f1c40f 270deg 360deg);"></div>
+            <div id="wheel-wrapper">
+                <div style="width:0; height:0; border-left:15px solid transparent; border-right:15px solid transparent; border-top:30px solid #fff; position:absolute; top:-10px; left:50%; transform:translateX(-50%); z-index:10;"></div>
+                <div id="wheel">
+                    <div class="wheel-section" style="transform: rotate(30deg);"><span>5K</span></div>
+                    <div class="wheel-section" style="transform: rotate(90deg);"><span>10K</span></div>
+                    <div class="wheel-section" style="transform: rotate(150deg);"><span>20K</span></div>
+                    <div class="wheel-section" style="transform: rotate(210deg);"><span>50K</span></div>
+                    <div class="wheel-section" style="transform: rotate(270deg);"><span>100K</span></div>
+                    <div class="wheel-section" style="transform: rotate(330deg);"><span>BOOST 2X</span></div>
+                </div>
             </div>
-            <button id="spin-btn" onclick="spinWheel()" style="margin-top:20px; background:var(--gold); color:#000; width:200px; border-radius:50px;">SPIN SEKARANG</button>
+            <button id="spin-btn" onclick="spinWheel()" style="margin-top:20px; background:var(--gold); color:#000; width:220px; font-weight:bold; border-radius:50px;">GAS SPIN</button>
         </div>
         <div id="page-rb" style="display:none">
             <div style="padding:20px; border:2px solid var(--gold); border-radius:15px;">
                 <h3 id="rb-title">REBIRTH</h3>
                 <p>Minimal: <b>Rp100.000.000</b></p>
-                <button id="rb-btn" onclick="doRebirth()" style="width:100%; background:var(--gold); color:#000;">REBIRTH</button>
+                <button id="rb-btn" onclick="doRebirth()" style="width:100%; background:var(--gold); color:#000;">REBIRTH SEKARANG</button>
             </div>
         </div>
     </div>
@@ -90,7 +101,7 @@
         let game = { user: "", pass: "", money: 0, mps: 0, multi: 1.0, rb: 0, lastSpin: 0 };
         const baseUpgrades = [
             { n: "Gerobak Gorengan", p: 15, g: 1 }, { n: "Ojek Pengkolan", p: 100, g: 8 }, { n: "Warung Madura", p: 1000, g: 70 },
-            { n: "Cafe Sultan", p: 10000, g: 800 }, { n: "Showroom Mobil", p: 100000, g: 9500 }, { n: "Pabrik Uang", p: 1000000, g: 110000 },
+            { n: "Cafe Viral", p: 10000, g: 800 }, { n: "Showroom Mobil", p: 100000, g: 9500 }, { n: "Pabrik Uang", p: 1000000, g: 110000 },
             { n: "Klub Bola", p: 10000000, g: 1500000 }, { n: "Bitcoin Mine", p: 100000000, g: 20000000 }, { n: "Mars Colony", p: 1000000000, g: 300000000 }
         ];
         let upgrades = JSON.parse(JSON.stringify(baseUpgrades)).map(u => ({...u, c: 0}));
@@ -98,8 +109,12 @@
         const bgm = document.getElementById('bgm');
         
         function toggleAudio() {
-            if(bgm.paused) { bgm.play(); document.getElementById('audio-ctrl').innerText = "🎵 Music: ON"; }
-            else { bgm.pause(); document.getElementById('audio-ctrl').innerText = "🎵 Music: OFF"; }
+            if(bgm.paused) { 
+                bgm.play().then(() => document.getElementById('audio-ctrl').innerText = "🎵 AUDIO: ON");
+            } else { 
+                bgm.pause(); 
+                document.getElementById('audio-ctrl').innerText = "🎵 AUDIO: OFF"; 
+            }
         }
 
         function login() {
@@ -107,37 +122,48 @@
             let p = document.getElementById('password-input').value.trim();
             if(!n || !p) return alert("Isi nama & password!");
 
-            // RECOVERY SYSTEM: Cek semua versi lama
-            let foundData = null;
-            for(let i=11; i<=22; i++) {
+            for(let i=11; i<=23; i++) {
                 let check = localStorage.getItem('sultan_v' + i + '_' + n);
-                if(check) { foundData = JSON.parse(check); break; }
+                if(check) {
+                    let d = JSON.parse(check);
+                    if(d.game.pass === p) { game = d.game; upgrades = d.upgrades; break; }
+                    else return alert("Password salah!");
+                }
             }
-
-            if(foundData) {
-                if(foundData.game.pass !== p) return alert("Password salah!");
-                game = foundData.game;
-                upgrades = foundData.upgrades;
-            } else {
-                game.user = n; game.pass = p;
-            }
+            if(!game.user) { game.user = n; game.pass = p; }
 
             document.getElementById('auth-box').style.display = 'none';
-            bgm.volume = 0.4;
-            bgm.play().then(() => document.getElementById('audio-ctrl').innerText = "🎵 Music: ON").catch(() => {});
-            
             updateBranding();
             renderShop();
             startLoop();
+            
+            // Audio Fix: Coba play otomatis
+            bgm.volume = 0.5;
+            bgm.play().then(() => document.getElementById('audio-ctrl').innerText = "🎵 AUDIO: ON").catch(e => {
+                console.log("Klik tombol audio manual di bawah!");
+            });
         }
 
-        function updateBranding() {
-            const u = game.user || "USER";
-            document.getElementById('title-tag').innerText = u + " LIFE";
-            document.getElementById('login-title').innerText = u + " LOGIN";
-            document.getElementById('rank-title').innerText = "RANK " + u;
-            document.getElementById('rb-title').innerText = u + " REBIRTH";
-            document.getElementById('user-display').innerText = u;
+        function spinWheel() {
+            if(Date.now() - game.lastSpin < 86400000) return alert("Besok lagi Sultan!");
+            let r = Math.floor(Math.random() * 360);
+            document.getElementById('wheel').style.transform = `rotate(${3600 + r}deg)`;
+            document.getElementById('spin-btn').disabled = true;
+            setTimeout(() => {
+                let f = (360 - (r % 360)) % 360;
+                let prize = "";
+                if(f < 60) { game.money += 5000; prize = "Rp5.000"; }
+                else if(f < 120) { game.money += 10000; prize = "Rp10.000"; }
+                else if(f < 180) { game.money += 20000; prize = "Rp20.000"; }
+                else if(f < 240) { game.money += 50000; prize = "Rp50.000"; }
+                else if(f < 300) { game.money += 100000; prize = "Rp100.000"; }
+                else { game.multi += 2; prize = "BOOST 2X"; }
+                
+                alert("Dapet: " + prize);
+                game.lastSpin = Date.now();
+                document.getElementById('spin-btn').disabled = false;
+                refresh(); saveGame();
+            }, 4000);
         }
 
         function renderShop() {
@@ -157,25 +183,6 @@
             }
         }
 
-        function spinWheel() {
-            if(Date.now() - game.lastSpin < 86400000) return alert("Tunggu besok!");
-            let r = Math.floor(Math.random() * 360);
-            document.getElementById('wheel').style.transform = `rotate(${3600 + r}deg)`;
-            document.getElementById('spin-btn').disabled = true;
-            setTimeout(() => {
-                let f = (360 - (r % 360)) % 360;
-                let prize = "";
-                if(f < 90) { game.money += 5000; prize = "Rp5.000"; }
-                else if(f < 180) { game.money += 10000; prize = "Rp10.000"; }
-                else if(f < 270) { game.money += 20000; prize = "Rp20.000"; }
-                else { game.multi += 2; prize = "BOOST 2X"; }
-                alert("Dapet: " + prize);
-                game.lastSpin = Date.now();
-                document.getElementById('spin-btn').disabled = false;
-                refresh(); saveGame();
-            }, 4000);
-        }
-
         function refresh() {
             document.getElementById('money').innerText = Math.floor(game.money).toLocaleString();
             document.getElementById('multi-display').innerText = game.multi.toFixed(1);
@@ -187,11 +194,17 @@
             });
         }
 
-        function saveGame() { if(game.user) localStorage.setItem('sultan_v22_' + game.user, JSON.stringify({game, upgrades})); }
+        function updateBranding() {
+            const u = game.user || "USER";
+            document.getElementById('title-tag').innerText = u + " LIFE V23";
+            document.getElementById('login-title').innerText = u + " LOGIN";
+            document.getElementById('rank-title').innerText = "RANK " + u;
+            document.getElementById('rb-title').innerText = u + " REBIRTH";
+            document.getElementById('user-display').innerText = u;
+        }
+        function saveGame() { if(game.user) localStorage.setItem('sultan_v23_' + game.user, JSON.stringify({game, upgrades})); }
         function startLoop() { setInterval(() => { game.money += (game.mps * game.multi)/10; refresh(); }, 100); setInterval(saveGame, 5000); }
-        document.getElementById('main-target').addEventListener('pointerdown', (e) => {
-            game.money += (1 * game.multi); refresh();
-        });
+        document.getElementById('main-target').addEventListener('pointerdown', (e) => { game.money += (1 * game.multi); refresh(); });
         function showPage(p) {
             ['shop','rank','spin','rb'].forEach(pg => {
                 document.getElementById('page-'+pg).style.display = (pg === p) ? 'block' : 'none';
