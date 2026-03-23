@@ -1,195 +1,314 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sultan Gacha & Rebirth</title>
+    <title>Sultan Tap Tap Royale V8</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00ff88">
     <style>
-        body { 
-            margin: 0; background: #05070a; color: #fff; 
+        :root {
+            --bg: #05070a; --card: rgba(17, 20, 29, 0.9);
+            --accent: #00ff88; --gold: #f1c40f; --purple: #9b59b6;
+            --neon-green: 0 0 15px #00ff88; --neon-gold: 0 0 15px #f1c40f;
+        }
+
+        body {
+            margin: 0; background: var(--bg); color: #fff;
             font-family: 'Segoe UI', sans-serif; text-align: center;
-            user-select: none; touch-action: manipulation;
+            overflow-x: hidden; user-select: none; touch-action: manipulation;
+            background-image: radial-gradient(circle at 50% 50%, #1a1c2c 0%, var(--bg) 90%);
         }
-        .header { background: linear-gradient(180deg, #1a1c2c, #05070a); padding: 20px; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid #333; }
-        #money { font-size: 40px; color: #00ff88; font-weight: bold; }
-        .stats { display: flex; justify-content: space-around; font-size: 12px; color: #aaa; margin-top: 10px; }
+
+        /* --- Animations & Effects --- */
+        canvas { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+        .header { background: rgba(26,28,44,0.95); padding: 20px 15px; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); border-bottom: 2px solid #333; }
+        #money { font-size: 42px; color: var(--accent); font-weight: 900; text-shadow: var(--neon-green); margin: 5px 0; }
         
-        #coin {
-            width: 140px; height: 140px; background: radial-gradient(circle, #f1c40f, #d4ac0d);
-            border-radius: 50%; margin: 20px auto;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 60px; border: 6px solid #fff;
-            box-shadow: 0 0 20px rgba(241,196,15,0.3);
-            transition: transform 0.05s;
+        .floating-text {
+            position: fixed; color: var(--gold); font-weight: bold; pointer-events: none;
+            z-index: 1000; font-size: 26px; text-shadow: 0 0 8px #000;
+            animation: floatUp 0.7s ease-out forwards;
         }
-        #coin:active { transform: scale(0.9); }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-120px) scale(1.5); } }
 
-        .tabs { display: flex; background: #161925; margin-top: 10px; }
-        .tab { flex: 1; padding: 15px; cursor: pointer; border-bottom: 2px solid transparent; font-weight: bold; }
-        .tab.active { border-color: #00ff88; color: #00ff88; background: #1a1c2c; }
+        /* --- Modals --- */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(15px); }
+        .auth-card { background: var(--card); padding: 35px; border-radius: 20px; border: 2px solid #444; box-shadow: 0 0 40px rgba(0,255,136,0.1); width: 280px; }
+        input { padding: 15px; border-radius: 10px; border: 1px solid #444; background: #111; color: #fff; width: 100%; box-sizing: border-box; margin-bottom: 12px; font-size: 16px; }
+        input:focus { border-color: var(--accent); outline: none; }
 
-        .container { padding: 10px; max-width: 500px; margin: auto; padding-bottom: 100px; }
-        .item {
-            background: #11141d; margin: 8px 0; padding: 12px;
-            border-radius: 10px; display: flex; justify-content: space-between;
-            align-items: center; border: 1px solid #222;
+        /* --- Ranking Colors --- */
+        .rank-0 { color: #fff; }
+        .rank-1 { color: #00ff88; text-shadow: 0 0 5px #00ff88; }
+        .rank-5 { color: #f1c40f; text-shadow: var(--neon-gold); font-weight: bold; }
+        .rank-10 { color: #e74c3c; text-shadow: 0 0 15px #e74c3c; font-weight: bold; animation: rainbow 2s infinite; }
+        @keyframes rainbow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+
+        /* --- Interactive Center --- */
+        #main-target {
+            width: 160px; height: 160px; border-radius: 50%; margin: 25px auto;
+            display: flex; align-items: center; justify-content: center; font-size: 80px;
+            border: 8px solid #fff; box-shadow: 0 15px 30px rgba(0,0,0,0.5), var(--neon-gold);
+            cursor: pointer; transition: transform 0.05s; background: radial-gradient(circle, var(--gold), #b8860b);
         }
-        .info { text-align: left; }
-        .info strong { display: block; font-size: 14px; }
-        .info small { color: #00ff88; font-size: 11px; }
+        #main-target:active { transform: scale(0.85); }
 
-        button {
-            padding: 10px; background: #3498db; color: #fff;
-            border: none; border-radius: 5px; font-weight: bold; min-width: 70px;
-        }
-        button:disabled { background: #333; color: #666; }
+        /* --- UI Elements --- */
+        .container { padding: 15px; max-width: 500px; margin: auto; padding-bottom: 110px; }
+        .tabs { display: flex; background: #161925; sticky; top: 120px; z-index: 90; overflow-x: auto; border-bottom: 2px solid #333; }
+        .tab { flex: 1; padding: 15px; cursor: pointer; color: #777; font-weight: bold; font-size: 13px; min-width: 90px; }
+        .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); background: rgba(0,255,136,0.05); }
 
-        #gacha-box { background: #1e1e1e; padding: 20px; border-radius: 15px; border: 2px dashed #f1c40f; margin-top: 20px; }
-        .rebirth-zone { margin-top: 30px; border-top: 1px solid #333; padding-top: 20px; }
+        .item { background: var(--card); margin: 10px 0; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
+        button { padding: 12px 18px; background: #3498db; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button:disabled { background: #222; color: #555; cursor: not-allowed; }
+
+        /* --- Daily Spin --- */
+        #wheel { width: 250px; height: 250px; border: 6px solid #fff; border-radius: 50%; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); background: conic-gradient(#e74c3c 0 60deg, #3498db 60deg 120deg, #2ecc71 120deg 180deg, #f1c40f 180deg 240deg, #9b59b6 240deg 300deg, #e67e22 300deg 360deg); position: relative; }
+        .pointer { width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #fff; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); z-index: 10; }
+
+        .skin-card { background: #111; padding: 15px; border-radius: 10px; border: 2px solid #333; cursor: pointer; }
+        .skin-card.active { border-color: var(--accent); box-shadow: var(--neon-green); }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div id="money">0</div>
-        <div class="stats">
-            <div>MPS: <span id="mps">0</span></div>
-            <div>MULTI: <span id="multi">1.0</span>x</div>
-            <div>REBIRTH: <span id="rb-count">0</span></div>
+    <canvas id="canvas"></canvas>
+
+    <div id="auth-box" class="modal">
+        <div class="auth-card">
+            <h2 style="color:var(--gold); margin-top:0;">SULTAN LOGIN</h2>
+            <input type="text" id="username-input" placeholder="Username...">
+            <input type="password" id="password-input" placeholder="Password...">
+            <button onclick="login()" style="width:100%; background:var(--accent); color:#000; padding:15px; margin-top:10px;">MULAI MAIN</button>
         </div>
     </div>
 
-    <div id="coin">💰</div>
+    <div id="spin-modal" class="modal" style="display:none">
+        <h2 style="color:var(--gold)">DAILY SPIN</h2>
+        <div style="position:relative">
+            <div class="pointer"></div>
+            <div id="wheel"></div>
+        </div>
+        <button id="spin-btn" onclick="spinWheel()" style="margin-top:30px; background:var(--gold); color:#000; width:200px;">PUTAR RODA</button>
+        <button onclick="closeModal('spin-modal')" style="background:none; border:none; color:#888; margin-top:15px;">Tutup</button>
+    </div>
+
+    <div class="header">
+        <div style="display:flex; justify-content:space-between; font-size:12px;">
+            <span id="user-display">Sultan: -</span>
+            <span onclick="location.reload()" style="cursor:pointer; color:var(--accent)">Logout</span>
+        </div>
+        <div id="money">0</div>
+        <div style="font-size:12px; color:#aaa;">RB: <span id="rb-display" style="color:var(--gold)">0</span> | MPS: <span id="mps-display">0</span> | Potion: <span id="pot-display">100%</span></div>
+    </div>
+
+    <div id="main-target">💰</div>
 
     <div class="tabs">
-        <div class="tab active" onclick="showPage('shop')">BISNIS</div>
-        <div class="tab" onclick="showPage('gacha')">GACHA</div>
-        <div class="tab" onclick="showPage('rebirth')">REBIRTH</div>
+        <div id="t-shop" class="tab active" onclick="showPage('shop')">BISNIS</div>
+        <div id="t-gacha" class="tab" onclick="showPage('gacha')">GACHA</div>
+        <div id="t-skins" class="tab" onclick="showPage('skins')">SKINS</div>
+        <div id="t-rank" class="tab" onclick="showPage('rank')">RANK</div>
+        <div class="tab" onclick="showSpin()">SPIN</div>
+        <div id="t-rb" class="tab" onclick="showPage('rb')">REBIRTH</div>
     </div>
 
     <div class="container">
-        <div id="page-shop">
-            <div id="shop-list"></div>
-        </div>
-
+        <div id="page-shop"><div id="shop-list"></div></div>
+        
         <div id="page-gacha" style="display:none">
-            <div id="gacha-box">
-                <h3>KOPER MISTERI</h3>
-                <p>Harga: 5,000 Duit</p>
-                <button onclick="pullGacha()" style="background:#f1c40f; color:#000; width:100%; padding:15px;">BUKA KOPER</button>
-                <p id="gacha-msg" style="margin-top:15px; font-weight:bold; color:#f1c40f;"></p>
+            <div style="background:var(--card); padding:25px; border-radius:20px; border:2px dashed var(--purple);">
+                <h3 style="color:var(--purple)">LAB RAMUAN</h3>
+                <p>Harga: 25,000 Duit</p>
+                <button onclick="pullGacha()" style="background:var(--purple); width:100%; padding:15px;">BELI KOPER RAMUAN</button>
+                <p id="gacha-msg" style="margin-top:15px; font-weight:bold;"></p>
             </div>
         </div>
 
-        <div id="page-rebirth" style="display:none" class="rebirth-zone">
-            <h3>RITUAL REBIRTH</h3>
-            <p>Butuh: 1,000,000 Duit</p>
-            <p style="font-size:12px; color:#aaa;">Semua aset akan di-reset, tapi Multiplier nambah permanen +1.0x</p>
-            <button id="btn-rb" onclick="doRebirth()" style="background:#e74c3c; width:100%; padding:15px;">EKSEKUSI REBIRTH</button>
+        <div id="page-skins" style="display:none">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;" id="skin-list"></div>
+        </div>
+
+        <div id="page-rb" style="display:none">
+            <div style="background:rgba(241,196,15,0.1); padding:25px; border-radius:20px; border:2px solid var(--gold);">
+                <h2 style="color:var(--gold)">RITUAL REBIRTH</h2>
+                <p>Syarat: 100 Juta Duit</p>
+                <button id="rb-btn" onclick="doRebirth()" style="background:var(--gold); color:#000; width:100%; padding:18px; font-size:18px;">LAKUKAN REBIRTH</button>
+            </div>
+        </div>
+
+        <div id="page-rank" style="display:none">
+            <h3>LEADERBOARD</h3>
+            <table align="center" width="100%" id="rank-table"></table>
         </div>
     </div>
 
     <script>
-        let game = {
-            money: 0, mps: 0, multi: 1.0, rb: 0,
-            upgrades: [
-                { n: "Jualan Gorengan", p: 15, g: 1, c: 0 },
-                { n: "Ojek Pengkolan", p: 100, g: 5, c: 0 },
-                { n: "Toko Kelontong", p: 500, g: 25, c: 0 },
-                { n: "Cafe Hits", p: 2500, g: 120, c: 0 },
-                { n: "Showroom Mobil", p: 12000, g: 650, c: 0 },
-                { n: "Pabrik Tekstil", p: 50000, g: 3000, c: 0 },
-                { n: "Tambang Batubara", p: 200000, g: 15000, c: 0 },
-                { n: "Stasiun TV", p: 1000000, g: 80000, c: 0 },
-                { n: "Bank Swasta", p: 5000000, g: 450000, c: 0 },
-                { n: "Koloni Mars", p: 25000000, g: 2500000, c: 0 }
-            ]
-        };
+        let game = { user: "", pass: "", money: 0, mps: 0, multi: 1.0, potBoost: 1.0, rb: 0, skin: "💰", lastSpin: 0 };
+        const baseUpgrades = [
+            { n: "Gorengan", p: 15, g: 1 }, { n: "Ojol", p: 100, g: 8 }, { n: "Warnet", p: 500, g: 40 },
+            { n: "Cafe", p: 2000, g: 180 }, { n: "Toko Diamond", p: 10000, g: 900 }, { n: "Kilang Minyak", p: 50000, g: 5000 },
+            { n: "Pabrik Robot", p: 250000, g: 28000 }, { n: "Bank", p: 1000000, g: 120000 }, { n: "Pulau Pribadi", p: 5000000, g: 650000 },
+            { n: "Maskapai", p: 25000000, g: 3500000 }, { n: "Base Bulan", p: 150000000, g: 20000000 }, { n: "Koloni Mars", p: 1000000000, g: 150000000 },
+            { n: "Stasiun Luar Angkasa", p: 10000000000, g: 1800000000 }, { n: "Portal Dimensi", p: 100000000000, g: 20000000000 }, { n: "Penguasa Galaksi", p: 1000000000000, g: 250000000000 }
+        ];
+        let upgrades = baseUpgrades.map(u => ({...u, c: 0}));
 
-        // Load Game
-        const saved = localStorage.getItem('sultan_save');
-        if(saved) {
-            const data = JSON.parse(saved);
-            game.money = data.money; game.mps = data.mps; game.multi = data.multi; game.rb = data.rb;
-            data.upgrades.forEach((u, i) => { if(game.upgrades[i]) game.upgrades[i] = u; });
+        const skins = [
+            { s: "💰", n: "Basic", r: 0 }, { s: "💎", n: "Diamond", r: 1 }, { s: "👑", n: "King", r: 3 }, { s: "🛸", n: "UFO", r: 5 }, { s: "👹", n: "Oni", r: 10 }
+        ];
+
+        /* --- Canvas Particles --- */
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x; this.y = y;
+                this.vX = (Math.random() - 0.5) * 10;
+                this.vY = (Math.random() - 0.5) * 10 - 5;
+                this.life = 1;
+            }
+            update() { this.x += this.vX; this.y += this.vY; this.vY += 0.5; this.life -= 0.02; }
+            draw() { ctx.fillStyle = `rgba(241, 196, 15, ${this.life})`; ctx.font = "20px serif"; ctx.fillText("🪙", this.x, this.y); }
         }
 
-        function save() { localStorage.setItem('sultan_save', JSON.stringify(game)); }
+        function animate() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles = particles.filter(p => p.life > 0);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
 
-        function refresh() {
-            document.getElementById('money').innerText = Math.floor(game.money).toLocaleString();
-            document.getElementById('mps').innerText = (game.mps * game.multi).toLocaleString();
-            document.getElementById('multi').innerText = game.multi.toFixed(1);
-            document.getElementById('rb-count').innerText = game.rb;
-            document.getElementById('btn-rb').disabled = game.money < 1000000;
+        /* --- Core Logic --- */
+        function login() {
+            let n = document.getElementById('username-input').value.trim();
+            let p = document.getElementById('password-input').value.trim();
+            if(!n || !p) return alert("Isi data lu!");
+            let saved = localStorage.getItem('sultan_v8_' + n);
+            if(saved) {
+                let d = JSON.parse(saved);
+                if(d.game.pass !== p) return alert("Password Salah!");
+                game = d.game; upgrades = d.upgrades;
+            } else { game.user = n; game.pass = p; }
+            document.getElementById('auth-box').style.display = 'none';
+            document.getElementById('main-target').innerText = game.skin;
+            updateUI(); renderShop(); startLoop();
+        }
+
+        function hit(e) {
+            let val = (1 * game.multi * game.potBoost);
+            game.money += val;
+            const x = e.clientX || e.touches[0].clientX;
+            const y = e.clientY || e.touches[0].clientY;
+            for(let i=0; i<5; i++) particles.push(new Particle(x, y));
             
-            game.upgrades.forEach((u, i) => {
-                const b = document.getElementById('b'+i);
-                if(b) b.disabled = game.money < u.p;
-            });
-        }
-
-        function renderShop() {
-            document.getElementById('shop-list').innerHTML = game.upgrades.map((u, i) => `
-                <div class="item">
-                    <div class="info">
-                        <strong>${u.n} [Lv.${u.c}]</strong>
-                        <small>+${u.g}/s | Harga: ${Math.floor(u.p).toLocaleString()}</small>
-                    </div>
-                    <button id="b${i}" onclick="buy(${i})">BELI</button>
-                </div>
-            `).join('');
+            let ft = document.createElement('div');
+            ft.className = 'floating-text';
+            ft.innerText = "+" + Math.floor(val).toLocaleString();
+            ft.style.left = x + 'px'; ft.style.top = y + 'px';
+            document.body.appendChild(ft);
+            setTimeout(() => ft.remove(), 700);
+            refresh();
         }
 
         function buy(i) {
-            let u = game.upgrades[i];
-            if(game.money >= u.p) {
-                game.money -= u.p;
-                u.c++;
-                game.mps += u.g;
-                u.p *= 1.45;
-                refresh(); renderShop(); save();
+            if(game.money >= upgrades[i].p) {
+                game.money -= upgrades[i].p; upgrades[i].c++; game.mps += upgrades[i].g;
+                upgrades[i].p = Math.floor(upgrades[i].p * 1.5);
+                renderShop(); refresh(); saveGame();
             }
         }
 
         function pullGacha() {
-            if(game.money >= 5000) {
-                game.money -= 5000;
-                let r = Math.random();
-                let msg = "";
-                if(r > 0.9) { game.multi += 0.5; msg = "LEGENDARY! Multiplier +0.5x"; }
-                else if(r > 0.6) { game.money += 20000; msg = "JACKPOT! Dapet 20k Duit"; }
-                else { game.multi += 0.05; msg = "COMMON: Multiplier +0.05x"; }
-                document.getElementById('gacha-msg').innerText = msg;
-                refresh(); save();
-            }
+            if(game.money < 25000) return alert("Duit kurang!");
+            game.money -= 25000;
+            let r = Math.random(), m = "";
+            if(r > 0.8) { game.potBoost += 0.1; m = "POTION: +10% Pendapatan!"; }
+            else if(r > 0.5) { game.money += 150000; m = "JACKPOT: 150k Duit!"; }
+            else { game.multi += 0.2; m = "STEROID: Multi +0.2x!"; }
+            document.getElementById('gacha-msg').innerText = m;
+            refresh();
+        }
+
+        function showSpin() {
+            if(Date.now() - game.lastSpin < 86400000) return alert("Tunggu besok lagi!");
+            document.getElementById('spin-modal').style.display = 'flex';
+        }
+
+        function spinWheel() {
+            let deg = 3600 + Math.random() * 3600;
+            document.getElementById('wheel').style.transform = `rotate(${deg}deg)`;
+            document.getElementById('spin-btn').disabled = true;
+            setTimeout(() => {
+                game.money += 1000000; game.lastSpin = Date.now();
+                alert("Dapet 1 Juta Duit!");
+                closeModal('spin-modal'); refresh(); saveGame();
+            }, 4000);
         }
 
         function doRebirth() {
-            game.rb++;
-            game.multi += 1.0;
-            game.money = 0; game.mps = 0;
-            game.upgrades.forEach((u, i) => {
-                u.c = 0;
-                u.p = [15,100,500,2500,12000,50000,200000,1000000,5000000,25000000][i];
-            });
-            alert("Lu Rebirth! Sekarang lu makin OP.");
-            showPage('shop'); renderShop(); refresh(); save();
+            if(game.money < 100000000) return alert("Duit kurang 100jt!");
+            game.rb++; game.multi += 1.5; game.money = 0; game.mps = 0;
+            upgrades = baseUpgrades.map(u => ({...u, c: 0}));
+            updateUI(); renderShop(); showPage('shop'); saveGame();
         }
+
+        function updateUI() {
+            let u = document.getElementById('user-display');
+            u.innerText = "Sultan: " + game.user; u.className = "rank-" + (game.rb > 10 ? 10 : (game.rb > 5 ? 5 : (game.rb > 1 ? 1 : 0)));
+            document.getElementById('rb-display').innerText = game.rb;
+            document.getElementById('pot-display').innerText = Math.round(game.potBoost * 100) + "%";
+            document.getElementById('multi-display').innerText = game.multi.toFixed(1) + "x";
+        }
+
+        function refresh() {
+            document.getElementById('money').innerText = Math.floor(game.money).toLocaleString();
+            document.getElementById('mps-display').innerText = Math.floor(game.mps * game.multi * game.potBoost).toLocaleString();
+            upgrades.forEach((u,i) => { let b = document.getElementById('b'+i); if(b) b.disabled = game.money < u.p; });
+            document.getElementById('rb-btn').disabled = game.money < 100000000;
+        }
+
+        function renderShop() {
+            document.getElementById('shop-list').innerHTML = upgrades.map((u,i) => `
+                <div class="item">
+                    <div style="text-align:left"><strong>${u.n} (Lv.${u.c})</strong><small style="color:var(--accent)">+${Math.floor(u.g*game.multi).toLocaleString()}/s | Rp${u.p.toLocaleString()}</small></div>
+                    <button id="b${i}" onclick="buy(${i})">BELI</button>
+                </div>`).join('');
+        }
+
+        function renderSkins() {
+            document.getElementById('skin-list').innerHTML = skins.map(s => `
+                <div class="skin-card ${game.skin === s.s ? 'active' : ''}" onclick="setSkin('${s.s}',${s.r})">
+                    <div style="font-size:30px">${s.s}</div><div>${s.n}</div><small>RB: ${s.r}</small>
+                </div>`).join('');
+        }
+
+        function setSkin(s, r) { if(game.rb >= r) { game.skin = s; document.getElementById('main-target').innerText = s; renderSkins(); saveGame(); } else alert("RB Kurang!"); }
+        function saveGame() { if(game.user) localStorage.setItem('sultan_v8_' + game.user, JSON.stringify({game, upgrades})); }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
         function showPage(p) {
-            ['shop','gacha','rebirth'].forEach(pg => {
-                document.getElementById('page-'+pg).style.display = (pg === p) ? 'block' : 'none';
+            ['shop','gacha','skins','rank','rb'].forEach(pg => {
+                let el = document.getElementById('page-'+pg); if(el) el.style.display = (pg === p) ? 'block' : 'none';
+                let t = document.getElementById('t-'+pg); if(t) t.classList.remove('active');
             });
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
+            let act = document.getElementById('t-'+p); if(act) act.classList.add('active');
+            if(p === 'skins') renderSkins();
         }
 
-        document.getElementById('coin').addEventListener('pointerdown', (e) => { e.preventDefault(); game.money += (1 * game.multi); refresh(); });
-        
-        setInterval(() => { game.money += (game.mps * game.multi) / 10; refresh(); }, 100);
-        setInterval(save, 5000); // Auto-save tiap 5 detik
+        function startLoop() {
+            setInterval(() => { game.money += (game.mps * game.multi * game.potBoost) / 10; refresh(); }, 100);
+            setInterval(saveGame, 5000);
+        }
 
-        renderShop(); refresh();
+        document.getElementById('main-target').addEventListener('pointerdown', hit);
     </script>
 </body>
-</html>
+    </html>
