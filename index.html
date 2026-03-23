@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sultan Tap Tap Royale V16</title>
+    <title>Sultan Tap Tap Royale V17</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#00ff88">
     <style>
@@ -23,11 +23,27 @@
         .tab.active { color: var(--accent); border-bottom: 3px solid var(--accent); background: rgba(0,255,136,0.05); }
         .item { background: var(--card); margin: 8px 0; padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; }
         .tier-badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 5px; text-transform: uppercase; }
+
+        /* --- SPIN RE-DESIGN V17 --- */
         #wheel-wrapper { position: relative; width: 280px; height: 280px; margin: 20px auto; }
-        #wheel { width: 100%; height: 100%; border: 8px solid #fff; border-radius: 50%; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); background: conic-gradient(#e74c3c 0deg 90deg, #3498db 90deg 180deg, #2ecc71 180deg 270deg, #f1c40f 270deg 360deg); position: relative; overflow: hidden; }
-        .wheel-label { position: absolute; width: 100%; height: 100%; text-align: center; font-weight: 900; font-size: 16px; color: #fff; text-shadow: 1px 1px 4px #000; padding-top: 30px; box-sizing: border-box; }
+        #wheel { 
+            width: 100%; height: 100%; border: 8px solid #fff; border-radius: 50%; 
+            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); 
+            background: conic-gradient(#e74c3c 0deg 90deg, #3498db 90deg 180deg, #2ecc71 180deg 270deg, #f1c40f 270deg 360deg); 
+            position: relative; overflow: hidden;
+        }
+        .wheel-section {
+            position: absolute; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: flex-start;
+            padding-top: 35px; box-sizing: border-box;
+        }
+        .wheel-section span {
+            font-weight: 900; font-size: 14px; color: #fff;
+            text-shadow: 2px 2px 4px #000; transform: rotate(0deg);
+        }
+        #wheel-pointer { width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #fff; position: absolute; top: -10px; left: 50%; transform:translateX(-50%); z-index: 10; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); }
+        
         button { padding: 10px 15px; background: #3498db; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        button:disabled { background: #222; color: #555; }
     </style>
 </head>
 <body>
@@ -70,12 +86,12 @@
         </div>
         <div id="page-spin" style="display:none">
             <div id="wheel-wrapper">
-                <div style="width:0; height:0; border-left:15px solid transparent; border-right:15px solid transparent; border-top:30px solid #fff; position:absolute; top:-10px; left:50%; transform:translateX(-50%); z-index:10;"></div>
+                <div id="wheel-pointer"></div>
                 <div id="wheel">
-                    <div class="wheel-label" style="transform: rotate(45deg);">5.000</div>
-                    <div class="wheel-label" style="transform: rotate(135deg);">10.000</div>
-                    <div class="wheel-label" style="transform: rotate(225deg);">20.000</div>
-                    <div class="wheel-label" style="transform: rotate(315deg);">BOOST 2X</div>
+                    <div class="wheel-section" style="transform: rotate(45deg);"><span>5.000</span></div>
+                    <div class="wheel-section" style="transform: rotate(135deg);"><span>10.000</span></div>
+                    <div class="wheel-section" style="transform: rotate(225deg);"><span>20.000</span></div>
+                    <div class="wheel-section" style="transform: rotate(315deg);"><span>BOOST 2X</span></div>
                 </div>
             </div>
             <button id="spin-btn" onclick="spinWheel()" style="margin-top:10px; background:var(--gold); color:#000; padding:15px; width:220px; font-weight:900; border-radius:50px;">PUTAR SPIN</button>
@@ -113,14 +129,11 @@
             let n = document.getElementById('username-input').value.trim();
             let p = document.getElementById('password-input').value.trim();
             if(!n || !p) return alert("Isi data!");
-            
-            // CARI DATA DI SEMUA VERSI (V11 - V16)
             let saved = null;
-            for(let i=11; i<=16; i++) {
+            for(let i=11; i<=17; i++) {
                 let check = localStorage.getItem('sultan_v' + i + '_' + n);
                 if(check) { saved = check; break; }
             }
-
             if(saved) {
                 let d = JSON.parse(saved);
                 if(d.game.pass !== p) return alert("Salah Password!");
@@ -155,9 +168,10 @@
         }
 
         function spinWheel() {
-            if(Date.now() - game.lastSpin < 86400000) return alert("Besok lagi Sultan!");
+            if(Date.now() - game.lastSpin < 86400000) return alert("Besok lagi!");
             let randomAdd = Math.floor(Math.random() * 360);
-            document.getElementById('wheel').style.transform = `rotate(${3600 + randomAdd}deg)`;
+            let totalDeg = 3600 + randomAdd;
+            document.getElementById('wheel').style.transform = `rotate(${totalDeg}deg)`;
             document.getElementById('spin-btn').disabled = true;
             setTimeout(() => {
                 let finalPos = (360 - (randomAdd % 360)) % 360;
@@ -166,7 +180,7 @@
                 else if (finalPos < 180) { game.multi += 2; prize = "BOOST 2X"; }
                 else if (finalPos < 270) { game.money += 20000; prize = "20.000"; }
                 else { game.money += 10000; prize = "10.000"; }
-                alert("Dapet: " + prize); game.lastSpin = Date.now();
+                alert("HOKI! Dapet: " + prize); game.lastSpin = Date.now();
                 document.getElementById('spin-btn').disabled = false;
                 refresh(); saveGame();
             }, 4000);
@@ -197,9 +211,9 @@
             upgrades.forEach((u,i) => { let b = document.getElementById('b'+i); if(b) b.disabled = game.money < u.p; });
         }
         function updateUI() { document.getElementById('user-display').innerText = game.user; refresh(); }
-        function saveGame() { if(game.user) localStorage.setItem('sultan_v16_' + game.user, JSON.stringify({game, upgrades})); }
+        function saveGame() { if(game.user) localStorage.setItem('sultan_v17_' + game.user, JSON.stringify({game, upgrades})); }
         function startLoop() { setInterval(() => { game.money += (game.mps * game.multi) / 10; refresh(); }, 100); setInterval(saveGame, 5000); }
         document.getElementById('main-target').addEventListener('pointerdown', hit);
     </script>
 </body>
-    </html>
+</html>
